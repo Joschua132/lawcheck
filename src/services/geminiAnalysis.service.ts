@@ -71,8 +71,11 @@ Return ONLY valid JSON with exactly this structure, no markdown, no extra text:
   });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({})) as { error?: string };
-    throw new Error(err.error || `Analysis failed: HTTP ${response.status}`);
+    const err = await response.json().catch(() => ({})) as { error?: string | { message?: string } };
+    const msg = typeof err.error === 'string'
+      ? err.error
+      : (err.error as { message?: string })?.message || `Analysis failed: HTTP ${response.status}`;
+    throw new Error(msg);
   }
 
   const data = await response.json() as {
