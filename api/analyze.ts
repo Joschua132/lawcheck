@@ -17,12 +17,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // CORS: allow localhost dev and the deployed Vercel URL
+  // CORS: allow localhost, any *.vercel.app domain, and custom ALLOWED_ORIGIN
   const origin = (req.headers.origin as string) || '';
-  const allowed = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
-  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
+  const isAllowed =
+    !origin ||
+    origin.startsWith('http://localhost') ||
+    origin.endsWith('.vercel.app') ||
+    (process.env.ALLOWED_ORIGIN ? origin === process.env.ALLOWED_ORIGIN : false);
 
-  if (origin && origin !== allowed && origin !== vercelUrl) {
+  if (!isAllowed) {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
 
